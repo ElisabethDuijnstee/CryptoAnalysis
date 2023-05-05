@@ -8,13 +8,15 @@ import requests
 import matplotlib.dates as mdates
 
 
-def calculate_pnl(spot, x, lower_percent, upper_percent, usdc_investment):
+def calculate_pnl(spot, x, lower_percent, upper_percent):
     lower = spot * (1 - lower_percent/100)
     upper = spot * (1 + upper_percent/100)
     spot_range = max(min(spot,upper),lower)
     price_range = np.clip(x, lower, upper)
-    y = usdc_investment*(((x/np.sqrt(price_range)) - (x/np.sqrt(upper)) + np.sqrt(price_range) - (np.sqrt(lower)))/((spot/(np.sqrt(spot_range))) - (spot/np.sqrt(upper)) + np.sqrt(spot_range)-np.sqrt(lower))) -1
-    y2 = usdc_investment*(np.sqrt(x/spot)) -1
+    #vt_v2 = 2*liquidity*np.sqrt(x)
+    #vt_v3 = ((liquidity*x)/np.sqrt(price_range))-((liquidity*x)/np.sqrt(upper))+liquidity*np.sqrt(price_range)-liquidity*np.sqrt(lower)
+    y = ((x/np.sqrt(price_range)) - (x/np.sqrt(upper)) + np.sqrt(price_range) - (np.sqrt(lower)))-((spot/(np.sqrt(spot_range))) - (spot/np.sqrt(upper)) + np.sqrt(spot_range)-np.sqrt(lower))
+    y2 = (np.sqrt(x/spot) -1)
     #y2 = usdc_investment*()
     return y, y2
 
@@ -64,9 +66,13 @@ st.sidebar.header("Select strategy")
 spot = st.sidebar.slider('Ethereum spot price', min_value=0.0, max_value=5000.0, value=1500.0, step=0.01)
 lower_percent = st.sidebar.slider('Lower bound %', min_value=0.0, max_value=100.0, value=10.0, step=0.1)
 upper_percent = st.sidebar.slider('Upper bound %', min_value=0.0, max_value=100.0, value=10.0, step=0.1)
-usdc_investment = st.sidebar.slider('Investment USDC', min_value=0.0, max_value=100000.0, value=1000.0, step=0.01)
-y, y2 = calculate_pnl(spot, x, lower_percent, upper_percent, usdc_investment)
-plot_pnl(x, y, y2, spot, spot*(1-lower_percent/100), spot*(1+upper_percent/100), xlim=(spot-1000,spot+2000), ylim = (usdc_investment-1000, usdc_investment+1000))
+#liquidity = st.sidebar.slider('Liquidity', min_value=0.0, max_value=100.0, value=1000.0, step=0.01)
+
+#quantity_eth = st.sidebar.slider('Investment Eth', min_value=0.0, max_value=100.0, value=1000.0, step=0.01)
+#quantity_usdc = st.sidebar.slider('Investment USDC', min_value = 0.0, max_value = 1000.0, value = 1000.0, step = 0.01)
+#usdc_investment = st.sidebar.slider('Investment USDC', min_value=0.0, max_value=100000.0, value=1000.0, step=0.01)
+y, y2 = calculate_pnl(spot, x, lower_percent, upper_percent)
+plot_pnl(x, y, y2, spot, spot*(1-lower_percent/100), spot*(1+upper_percent/100), xlim=(spot-1000,spot+2000), ylim = (-1000, 1000))
 
 
 #create columns
