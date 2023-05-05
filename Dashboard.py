@@ -13,8 +13,9 @@ def calculate_pnl(spot, x, lower_percent, upper_percent, usdc_investment):
     upper = spot * (1 + upper_percent/100)
     spot_range = max(min(spot,upper),lower)
     price_range = np.clip(x, lower, upper)
-    y = usdc_investment*((x/np.sqrt(price_range)) - (x/np.sqrt(upper)) + np.sqrt(price_range) - np.sqrt(lower))/((spot/(np.sqrt(spot))) - (spot/np.sqrt(upper)) + np.sqrt(spot)-np.sqrt(lower)) -1
+    y = usdc_investment*(((x/np.sqrt(price_range)) - (x/np.sqrt(upper)) + np.sqrt(price_range) - (np.sqrt(lower)))/((spot/(np.sqrt(spot_range))) - (spot/np.sqrt(upper)) + np.sqrt(spot_range)-np.sqrt(lower))) -1
     y2 = usdc_investment*(np.sqrt(x/spot)) -1
+    #y2 = usdc_investment*()
     return y, y2
 
 def plot_pnl(x, y, y2, spot, lower, upper, xlim, ylim):
@@ -65,7 +66,7 @@ lower_percent = st.sidebar.slider('Lower bound %', min_value=0.0, max_value=100.
 upper_percent = st.sidebar.slider('Upper bound %', min_value=0.0, max_value=100.0, value=10.0, step=0.1)
 usdc_investment = st.sidebar.slider('Investment USDC', min_value=0.0, max_value=100000.0, value=1000.0, step=0.01)
 y, y2 = calculate_pnl(spot, x, lower_percent, upper_percent, usdc_investment)
-plot_pnl(x, y, y2, spot, spot*(1-lower_percent/100), spot*(1+upper_percent/100), xlim=(spot-1000,spot+2000), ylim = (usdc_investment-1000, usdc_investment+1000))
+plot_pnl(x, y, y2, spot, spot*(1-lower_percent/100), spot*(1+upper_percent/100), xlim=(spot-1000,spot+2000), ylim = (usdc_investment-1000, usdc_investment))
 
 
 #create columns
