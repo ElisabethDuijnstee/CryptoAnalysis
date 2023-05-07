@@ -13,26 +13,27 @@ def calculate_pnl(spot, x, lower_percent, upper_percent):
     upper = spot * (1 + upper_percent/100)
     spot_range = max(min(spot,upper),lower)
     price_range = np.clip(x, lower, upper)
-    y = (((x/np.sqrt(price_range)) - (x/np.sqrt(upper)) + np.sqrt(price_range) - (np.sqrt(lower)))/((spot/(np.sqrt(spot_range))) - (spot/np.sqrt(upper)) + np.sqrt(spot_range)-np.sqrt(lower))) -1
-    y1 = ((np.sqrt(price_range)) + x/np.sqrt(price_range) - (x/np.sqrt(spot_range)) - np.sqrt(spot_range)) / ((spot_range/np.sqrt(spot_range)) - np.sqrt(lower) + (np.sqrt(spot_range)) - (spot/np.sqrt(upper)))
-    y3 = ((x/np.sqrt(price_range)) - (x/np.sqrt(upper)) + np.sqrt(price_range) - np.sqrt(lower))/((x/(np.sqrt(spot))) - (x/np.sqrt(upper)) + np.sqrt(spot)-np.sqrt(lower)) -1 
-    y2 = (np.sqrt(x/spot)) -1
+    y_v3_pnl = (((x/np.sqrt(price_range)) - (x/np.sqrt(upper)) + np.sqrt(price_range) - (np.sqrt(lower)))/((spot/(np.sqrt(spot_range))) - (spot/np.sqrt(upper)) + np.sqrt(spot_range)-np.sqrt(lower))) -1
+    y_v3_pnl =((np.sqrt(price_range)) + x/np.sqrt(price_range) - (x/np.sqrt(spot_range)) - np.sqrt(spot_range)) / ((spot_range/np.sqrt(spot_range)) - np.sqrt(lower) + (np.sqrt(spot_range)) - (spot/np.sqrt(upper)))
+    y_v3_pnl_hodl = ((x/np.sqrt(price_range)) - (x/np.sqrt(upper)) + np.sqrt(price_range) - np.sqrt(lower))/((x/(np.sqrt(spot))) - (x/np.sqrt(upper)) + np.sqrt(spot)-np.sqrt(lower)) -1 
+    y_v2 = (np.sqrt(x/spot)) -1
     #y2 = usdc_investment*()
-    return y, y1, y2, y3
+    return y_v3_pnl, y_v2
 
-def plot_pnl(x, y, y1, y2, y3, spot, lower, upper, xlim, ylim):
+def plot_pnl(x, y_v3_pnl, y_v2, spot, lower, upper, xlim, ylim):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=x, y=y, name='PnL', line=dict(color='#b2a2cf')))
-    fig.add_trace(go.Scatter(x=x, y=y1, name='PnL vs Initial Portfolio', line=dict(color='#8367c7')))
-    fig.add_trace(go.Scatter(x=x, y=y3, name= 'PnL vs Hodl', line=dict(color='#d15fee')))
-    fig.add_trace(go.Scatter(x=x, y=y2, name= 'PnL Uniswap V2', line=dict(color='#191970')))
+    fig.add_trace(go.Scatter(x=x, y=y_v3_pnl, name='V3 PnL', line=dict(color='#b2a2cf')))
+    #fig.add_trace(go.Scatter(x=x, y=y_v3_pnl_port, name='V3 PnL vs Initial Portfolio', line=dict(color='#8367c7')))
+    #fig.add_trace(go.Scatter(x=x, y=y_v3_pnl_hodl, name='V3 PnL vs Hodl', line=dict(color='#8367c7')))
+    fig.add_trace(go.Scatter(x=x, y=y_v2, name='V2', line=dict(color='#8367c7')))
+
     #fig.add_trace(go.Scatter(x=[spot, spot], y=[0, max(max(y), max(y2))], mode='lines', name='Spot', line=dict(color='black', width=2, dash='dash')))
-    fig.update_layout(xaxis_title="Price of Ethereum ($)", yaxis_title="Asset value (USDC)", xaxis_range=xlim, yaxis_range=ylim, title="Ethereum Price vs Impermanent Loss")
+    fig.update_layout(xaxis_title="Price of Ethereum ($)", yaxis_title="IL Rate", xaxis_range=xlim, yaxis_range=ylim, title="Ethereum Price vs Impermanent Loss")
 
     # Get y value at that index
     fig.add_trace(go.Scatter(
         x= x[(x>=lower)&(x<=upper)],
-        y = y[(x>=lower)&(x<=upper)],
+        y_v3_pnl = y_v3_pnl[(x>=lower)&(x<=upper)],
         fill='tozeroy',
         fillcolor='rgba(128, 0, 128, 0.2)',
         line=dict(color='rgba(255, 255, 255, 0)'),
@@ -45,7 +46,7 @@ def plot_pnl(x, y, y1, y2, y3, spot, lower, upper, xlim, ylim):
         'x0': spot, 
         'y0': 0, 
         'x1': spot, 
-        'y1': max(max(y), max(y2)),
+        'y1': max(max(y_v3_pnl), max(y_v2)),
         'line': dict(color='black', width=1, dash='dot'), 
         'editable': True
     }
@@ -54,7 +55,7 @@ def plot_pnl(x, y, y1, y2, y3, spot, lower, upper, xlim, ylim):
     fig.update_layout(
         shapes=[shape_dict],
         xaxis_title='Price of Ethereum ($)',
-        yaxis_title='Asset value (USDC)',
+        yaxis_title='IL Rate',
         xaxis_range=xlim,
         yaxis_range=ylim,
         plot_bgcolor='white'
@@ -69,8 +70,8 @@ spot = st.sidebar.slider('Ethereum spot price', min_value=0.0, max_value=5000.0,
 lower_percent = st.sidebar.slider('Lower bound %', min_value=0.0, max_value=100.0, value=10.0, step=0.1)
 upper_percent = st.sidebar.slider('Upper bound %', min_value=0.0, max_value=100.0, value=10.0, step=0.1)
 #usdc_investment = st.sidebar.slider('Investment USDC', min_value=0.0, max_value=100000.0, value=1000.0, step=0.01)
-y, y1, y2, y3 = calculate_pnl(spot, x, lower_percent, upper_percent)
-plot_pnl(x, y, y1, y2, y3, spot, spot*(1-lower_percent/100), spot*(1+upper_percent/100), xlim=(spot-1000,spot+2000), ylim = (-0.5, 0.5))
+y_v3_pnl, y_v2 = calculate_pnl(spot, x, lower_percent, upper_percent)
+plot_pnl(x, y_v3_pnl, y_v2, spot, spot*(1-lower_percent/100), spot*(1+upper_percent/100), xlim=(spot-1000,spot+2000), ylim = (-0.5, 0.5))
 
 
 #create columns
